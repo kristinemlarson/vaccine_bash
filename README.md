@@ -1,4 +1,4 @@
-### vacine_bash
+### vaccine_bash
 This bash script queries https://vaccinespotter.org every minute.
 That site is updated each minute, so I only run this script every minute.
 
