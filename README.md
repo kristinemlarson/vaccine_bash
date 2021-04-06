@@ -1,6 +1,6 @@
 ### vaccine_bash
 This bash script queries https://vaccinespotter.org every minute.
-That site is updated each minute, so I only run this script every minute.
+That site is updated each minute, so this script only checks every minute.
 
 ### Requirements
 
@@ -18,13 +18,16 @@ brew install terminal-notifier
 
 ### Notes
 
-The script is currently set for Boulder, Colorado and 30 miles. You can change the reference latitude,
-longitude to your location, and widen the distance. 
+The script is currently set for Central Park in NYC and 6 miles. You can change the reference latitude and  
+longitude to your location, and widen the distance as desired. 
 
-You can change to another state by changing the curl command 
-You also need to change your reference latitude and longitude.
+You MUST change the curl command to use the correct state.
 
-Thanks to vaccinespotter.org
+This latest version also prints out the street address and sorts by distance.
+
+A big thank you to https://vaccinespotter.org 
+They did the hard work.  Please consider donating to their suggested organizations, which include UNICEF
+https://www.unicefusa.org/mission/covid-19/vaccine
 
 Kristine M. Larson
 https://github.com/kristinemlarson

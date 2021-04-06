@@ -1,46 +1,69 @@
 #!/bin/bash
-echo This bash script queries https://vaccinespotter.org every minute. 
-echo That site is updated each minute, so I have set this this script to only 
-echo run every minute. I run it from a terminal.
-echo   
-echo You need to install jq.
-echo On a mac it is simply brew install jq
-echo Other installs are described here https://stedolan.github.io/jq/download/
-echo
-echo You need a notifier. I used terminal-notifier. On a mac the command is:
-echo brew install terminal-notifier
-echo For more information: https://github.com/julienXX/terminal-notifier
-echo
-echo This is currently set for Colorado and 30 miles. You can change the reference latitude,
-echo longitude, and distance. You can change to another state by changing the curl command to 
-echo use a different state. You would also need to change your reference latitude and longitude.
-echo If you don not know your coordinates, I recommend using google maps.
-echo 
-echo https://github.com/kristinemlarson 
+# Kristine M. Larson
+# Boulder, Colorado
+# April 6, 2021
+# https://github.com/kristinemlarson 
+# vaccinespotter.org is updated each minute, so I have set this this script to only 
+# run every minute. 
+#
+# Requirements:
+# 1. You need to install jq.
+# On a mac it is:  brew install jq
+# Other installs are described here https://stedolan.github.io/jq/download/
+#
+# 2. You need a notifier. I used a program called terminal-notifier. On a mac the command is:
+# brew install terminal-notifier
+# For more information: https://github.com/julienXX/terminal-notifier
+# 
+# 3. You need to tell the script where you live, i.e. your reference latitude
+# and longitude, in degrees. An easy way to find this is to use google maps. clicking
+# and using the control button on my computer brings up what you need to paste in here.
+#
+# 4. You need to to tell the script how far you are willing to travel. It is currently set to 
+# six miles.
+#
+# 5. IMPORTANT, you need to tell the script which state you live.  Look for the line
+# that has the curl command and swap in your two character state.
+#
+# 6. I run it from a terminal, chmod +x vaccine_bash and ./vaccine_bash to run
 
+echo This bash script queries vaccine appointments at https://vaccinespotter.org every minute. 
 #
 # Things to set :
 
 # Reference Coordinates  - in degrees
-# These are in North Boulder
-latref=40.044
-lonref=-105.269
-#  Distance you are willing to drive, in miles
-d=30 
+# These are in North Boulder, Colorado
+latref=40.785720689621336 
+lonref=-73.97581324839713
+
+# These values are near Central Park in NYC
+latref=40.77959534653717
+lonref=-73.97461161872697
+
+
+#  Distance from your reference location to the pharmacy, in miles
+d=6
+
 # Nominally this variable sets how long it runs.  It 
-# will run for an hour (60*60 seconds) before stopping
+# will run for an hour  before stopping
 # Change this is if you want to run it longer.
 # control C when you want to stop it manually 
-x=3600
+x=3600 # in seconds
 
 finished=false
 while [ "$finished" = false ]
 do
   # clean up
   rm -f toscreen tmp.txt
-  echo $x seconds
-  curl -s https://www.vaccinespotter.org/api/v0/states/CO.json  | jq -c '.features[] | "\(.geometry.coordinates[0]), \(.geometry.coordinates[1]), \(.properties.provider_brand), \(.properties.city), \(.properties.url), \(.properties.postal_code), \(.properties.appointments_available)" ' | grep true  > tmp.txt
-  cat tmp.txt | sed 's/"//g' | awk -F, -v d=$d -v lo=$lonref -v la=$latref '{if (68.2*sqrt(($1-lo)*($1-lo) + ($2-la)*($2-la))< d) print $3, $4, $6, $5, 68.2*sqrt(($1-lo)*($1-lo) + ($2-la)*($2-la)), "miles"}'   > toscreen
+  echo \-------------------------------------------------
+  echo Updating at $x seconds
+  echo 
+  # grepping out true is a bit of a cheat.  I could explicitly check that that record is true, but this does work
+  curl -s https://www.vaccinespotter.org/api/v0/states/NY.json  | jq -c '.features[] | "\(.geometry.coordinates[0]),\(.geometry.coordinates[1]),\(.properties.provider_brand),\(.properties.city),\(.properties.url),\(.properties.postal_code),\(.properties.address),\(.properties.appointments_available)" ' | grep true  > tmp.txt
+  # columns are 
+  # lat(1), lon(2), provider(3), city(4), url(5), zip code(6) address(7)
+  # cat tmp.txt | sed 's/"//g' | awk -F, -v d=$d -v lo=$lonref -v la=$latref '{if (68.2*sqrt(($1-lo)*($1-lo) + ($2-la)*($2-la))< d) printf "Distance %s miles %s %s %s %s %s \n", 68.2*sqrt(($1-lo)*($1-lo) + ($2-la)*($2-la)), "miles", $3,$4,$6, $7,$5}' | sort -n > toscreen
+  cat tmp.txt | sed 's/"//g' | awk -F, -v d=$d -v lo=$lonref -v la=$latref '{if (68.2*sqrt(($1-lo)*($1-lo) + ($2-la)*($2-la))< d) printf "%5.1f miles %-12s %-20s %-5s %-25s %s \n", 68.2*sqrt(($1-lo)*($1-lo) + ($2-la)*($2-la)), $3,$4,$6, $7,$5}' | sort -n > toscreen
   cat toscreen
 
   # subtract 60 seconds to our simple time variable 
@@ -55,7 +78,7 @@ do
   if [ $x -lt 0 ]; then
     finished=true
   fi
-  # only check every minute
+  # only check every minute, so send it to sleep
   sleep 60 
   # clean up
   rm -f toscreen tmp.txt
