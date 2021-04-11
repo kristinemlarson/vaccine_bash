@@ -33,8 +33,8 @@ echo This bash script queries vaccine appointments at https://vaccinespotter.org
 
 # Reference Coordinates  - in degrees
 # These are in North Boulder, Colorado
-latref=40.785720689621336 
-lonref=-73.97581324839713
+latref=40.044
+lonref=-105.269
 
 # These values are near Central Park in NYC
 latref=40.77959534653717
